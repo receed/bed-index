@@ -1,0 +1,2 @@
+class BinaryBedIndex : BedIndex {
+}
