@@ -20,7 +20,7 @@ data class FeaturePosition(val start: Int, val end: Int, val filePointer: Long) 
         /**
          * Number of bytes an entry occupies in an index file.
          */
-        val SIZE_BYTES = Long.SIZE_BYTES * 2
+        const val SIZE_BYTES = Long.SIZE_BYTES * 2
         /**
          * Reads a position from a binary index file.
          */

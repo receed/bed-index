@@ -1,8 +1,40 @@
 import java.io.RandomAccessFile
 import java.nio.file.Path
 
+/**
+ * Index file has the following format.
+ *
+ * Integers are written as big-endian; strings are written as two bytes representing the string length followed
+ * by the characters of the string. There are no delimiters between values.
+ *
+ * `chr1` `startPointer1` `endPointer1`
+ *
+ * `chr2` `startPointer2` `endPointer2`
+ *
+ * ...
+ *
+ * <empty string>
+ *
+ * `featureStart1` `featureEnd1` `pointer1`
+ *
+ * `featureStart2` `featureEnd2` `pointer2`
+ *
+ * where `chr1`, `chr2`, ... are all the unique chromosome names, `startPointer` and `endPointer` are the pointers
+ * to the start of the first feature and after the end of the last feature in the index file,
+ * `featureStart` and `featureEnd` are the start and the end of the feature in the chromosome,
+ * `pointer` is file pointer to the start of the feature description in the BED file. Features for each cromosome
+ * are listed in increasing order of their starting positions in the chromosome.
+ *
+ * @property chromosomeRanges The ranges of the features for the chromosomes in the index file.
+ * @property indexPath Path to index file.
+ */
 class BinaryBedIndex(private val chromosomeRanges: Map<String, FileRange>, private val indexPath: Path) :
     BedIndex {
+    /*
+     Finds the first feature in the index for which `start` is at least [start] using binary search, then
+     traverses all the features for which `start` is inside the range from [start] inclusive to [end] exclusive
+     and yields only features with `end` not greater than [end].
+     */
     override fun <T> usePositions(chromosome: String, start: Int, end: Int, block: (Sequence<Long>) -> T): T {
         val range = chromosomeRanges[chromosome] ?: return block(sequenceOf())
         return RandomAccessFile(indexPath.toFile(), "r").use { file ->
