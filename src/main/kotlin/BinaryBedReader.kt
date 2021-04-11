@@ -1,7 +1,6 @@
 import java.io.RandomAccessFile
 import java.nio.file.Path
 
-data class Position(val start: Int, val end: Int, val filePointer: Long)
 data class FileRange(val start: Long, val end: Long)
 
 object BinaryBedReader : BedReader {
@@ -9,7 +8,7 @@ object BinaryBedReader : BedReader {
         val index = RandomAccessFile(bedPath.toFile(), "r").use { file ->
             generateSequence { val pointer = file.filePointer; file.readLine()?.let { it.split('\t', ' ') to pointer } }
                 .dropWhile { it.first[0] == "browser" || it.first[0] == "track" }
-                .groupBy({ it.first[0] }) { Position(it.first[1].toInt(), it.first[2].toInt(), it.second) }
+                .groupBy({ it.first[0] }) { FeaturePosition(it.first[1].toInt(), it.first[2].toInt(), it.second) }
         }
         RandomAccessFile(indexPath.toFile(), "rw").use { file ->
             val firstEntryPointer = index.keys.sumOf { it.toByteArray().size.toLong() } + 10 * (index.size + 1)
@@ -23,12 +22,9 @@ object BinaryBedReader : BedReader {
 
                 file.seek(currentEntryPointer)
                 for (position in positions.sortedBy { it.start }) {
-                    file.writeInt(position.start)
-                    file.writeInt(position.end)
-                    file.writeLong(position.filePointer)
+                    position.write(file)
                 }
                 currentEntryPointer = file.filePointer
-
             }
             file.seek(currentChromosomePointer)
             file.writeUTF("")

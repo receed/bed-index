@@ -22,7 +22,7 @@ class BinaryBedIndex(private val chromosomeRanges: Map<String, FileRange>, priva
                 if (file.filePointer >= range.end)
                     null
                 else
-                    Position(file.readInt(), file.readInt(), file.readLong())
+                    FeaturePosition.read(file)
             }.takeWhile { it.start < end }.filter { it.end <= end }.map { it.filePointer })
         }
     }
