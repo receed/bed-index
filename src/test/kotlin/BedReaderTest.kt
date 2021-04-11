@@ -4,7 +4,7 @@ import java.nio.file.Path
 import kotlin.random.Random
 
 internal class BedReaderTest {
-    class IndexContext(val index: BedIndex, val bedPath: Path) {
+    class IndexContext(private val index: BedIndex, private val bedPath: Path) {
         private fun findWithIndex(chromosome: String, start: Int, end: Int) =
             BinaryBedReader.findWithIndex(index, bedPath, chromosome, start, end)
 
@@ -61,7 +61,7 @@ internal class BedReaderTest {
             repeat(entryCount) {
                 val chromosome = Random.nextInt(chromosomeCount)
                 val (start, end) = List(2) { Random.nextInt(maxPosition) }.sorted()
-                writer.appendLine("$chromosome $start $end")
+                writer.appendLine("$chromosome $start ${end + 1}")
             }
         }
     }
@@ -82,5 +82,6 @@ internal class BedReaderTest {
                 assertFind(chromosome, start, end, expected)
             }
         }
+        bedPath.toFile().delete()
     }
 }
