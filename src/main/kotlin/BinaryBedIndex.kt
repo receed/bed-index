@@ -6,18 +6,12 @@ class BinaryBedIndex(private val chromosomeRanges: Map<String, FileRange>, priva
     override fun <T> usePositions(chromosome: String, start: Int, end: Int, block: (Sequence<Long>) -> T): T {
         val range = chromosomeRanges[chromosome] ?: return block(sequenceOf())
         return RandomAccessFile(indexPath.toFile(), "r").use { file ->
-            var left = -1L
-            var right = (range.end - range.start) / ENTRY_SIZE - 1
-            while (right - left > 1) {
-                val middle = (left + right) / 2
-                file.seek(range.start + middle * ENTRY_SIZE)
-                val middleStart = file.readInt()
-                if (middleStart < start)
-                    left = middle
-                else
-                    right = middle
+            val entriesCount = (range.end - range.start) / FeaturePosition.SIZE_BYTES
+            val firstEntryNumber = binarySearch(0L, entriesCount) { position ->
+                file.seek(range.start + position * FeaturePosition.SIZE_BYTES)
+                file.readInt() >= start
             }
-            file.seek(range.start + right * ENTRY_SIZE)
+            file.seek(range.start + firstEntryNumber * FeaturePosition.SIZE_BYTES)
             block(generateSequence {
                 if (file.filePointer >= range.end)
                     null
@@ -28,6 +22,22 @@ class BinaryBedIndex(private val chromosomeRanges: Map<String, FileRange>, priva
     }
 
     companion object {
-        const val ENTRY_SIZE = Long.SIZE_BYTES * 2
+        /**
+         * Finds the first value in the range from [start] (inclusive) to [end] (exclusive) matching
+         * [predicate], assuming all values matching [predicate] form a suffix of the range.
+         * If there is no such value, returns [end].
+         */
+        fun binarySearch(start: Long, end: Long, predicate: (Long) -> Boolean): Long {
+            var left = start - 1
+            var right = end
+            while (right - left > 1) {
+                val middle = (left + right) / 2
+                if (predicate(middle))
+                    right = middle
+                else
+                    left = middle
+            }
+            return right
+        }
     }
 }

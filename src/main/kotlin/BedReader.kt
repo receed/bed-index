@@ -3,6 +3,10 @@ import java.nio.file.Path
 data class BedEntry(val chromosome: String, val start: Int, val end: Int, val other: List<Any>)
 
 interface BedIndex {
+    /**
+     * Calls the [block] callback giving it a sequence of positions in the BED file of all the features
+     * located on the given [chromosome] inside the range from [start] inclusive to [end] exclusive.
+     */
     fun <T> usePositions(chromosome: String, start: Int, end: Int, block: (Sequence<Long>) -> T): T
 }
 
