@@ -3,10 +3,17 @@ import java.nio.file.Path
 
 data class FileRange(val start: Long, val end: Long)
 
+fun BedEntry(line: String): BedEntry {
+    val items = line.split("\\s+".toRegex())
+    return BedEntry(items[0], items[1].toInt(), items[2].toInt(), items.drop(3))
+}
+
 object BinaryBedReader : BedReader {
     override fun createIndex(bedPath: Path, indexPath: Path) {
         val index = RandomAccessFile(bedPath.toFile(), "r").use { file ->
-            generateSequence { val pointer = file.filePointer; file.readLine()?.let { it.split('\t', ' ') to pointer } }
+            generateSequence {
+                val pointer = file.filePointer; file.readLine()?.let { it.split("\\s+".toRegex()) to pointer }
+            }
                 .dropWhile { it.first[0] == "browser" || it.first[0] == "track" }
                 .groupBy({ it.first[0] }) { FeaturePosition(it.first[1].toInt(), it.first[2].toInt(), it.second) }
         }
@@ -61,8 +68,7 @@ object BinaryBedReader : BedReader {
             index.usePositions(chromosome, start, end) { positions ->
                 positions.map { position ->
                     file.seek(position)
-                    val items = file.readLine().split('\t', ' ')
-                    BedEntry(items[0], items[1].toInt(), items[2].toInt(), items.drop(3))
+                    BedEntry(file.readLine())
                 }.toList()
             }
         }

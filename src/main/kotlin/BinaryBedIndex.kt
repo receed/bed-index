@@ -7,23 +7,24 @@ import java.nio.file.Path
  * Integers are written as big-endian; strings are written as two bytes representing the string length followed
  * by the characters of the string. There are no delimiters between values.
  *
- * `chr1` `startPointer1` `endPointer1`
- *
- * `chr2` `startPointer2` `endPointer2`
+ * `chr1` `startPointer1`
  *
  * ...
  *
- * <empty string>
+ * `chrN` startPointerN`
+ *
+ * "" `endPointerN`
  *
  * `featureStart1` `featureEnd1` `pointer1`
  *
  * `featureStart2` `featureEnd2` `pointer2`
  *
- * where `chr1`, `chr2`, ... are all the unique chromosome names, `startPointer` and `endPointer` are the pointers
- * to the start of the first feature and after the end of the last feature in the index file,
+ * where `chr1`, `chr2`, ... are all the unique chromosome names,
+ * `startPointer` is the pointer to the start of the first feature in the index file,
+ * `endPointerN` is the pointer after the end of the last feature of the last chromosome,
  * `featureStart` and `featureEnd` are the start and the end of the feature in the chromosome,
- * `pointer` is file pointer to the start of the feature description in the BED file. Features for each cromosome
- * are listed in increasing order of their starting positions in the chromosome.
+ * `pointer` is file pointer to the start of the feature description in the BED file.
+ * Features for each chromosome are listed in increasing order of their starting positions in the chromosome.
  *
  * @property chromosomeRanges The ranges of the features for the chromosomes in the index file.
  * @property indexPath Path to index file.
