@@ -29,8 +29,13 @@ import java.nio.file.Path
  * @property chromosomeRanges The ranges of the features for the chromosomes in the index file.
  * @property indexPath Path to index file.
  */
-class BinaryBedIndex(private val chromosomeRanges: Map<String, FileRange>, private val indexPath: Path) :
+class FileBedIndex(private val chromosomeRanges: Map<String, FileRange>, private val indexPath: Path) :
     BedIndex {
+    /**
+     * A half-open range of bytes in the index file.
+     */
+    data class FileRange(val start: Long, val end: Long)
+
     /*
      Finds the first feature in the index for which `start` is at least [start] using binary search, then
      traverses all the features for which `start` is inside the range from [start] inclusive to [end] exclusive
