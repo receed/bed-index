@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "me.receed"
-version = "1.0-SNAPSHOT"
+version = "1.0"
 
 repositories {
     mavenCentral()
@@ -28,4 +28,25 @@ tasks.withType<KotlinCompile>() {
 
 application {
     mainClassName = "MainKt"
+}
+
+val fatJar = task("fatJar", Jar::class) {
+    manifest {
+        attributes(
+            mapOf(
+                "Implementation-Title" to project.name,
+                "Implementation-Version" to project.version,
+                "Main-Class" to "MainKt"
+            )
+        )
+    }
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
+    with((tasks.jar.get() as CopySpec))
+}
+
+tasks {
+    "build" {
+        dependsOn(fatJar)
+    }
 }

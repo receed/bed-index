@@ -115,7 +115,7 @@ internal class BedReaderTest {
     @Test
     fun measureFindTime() {
         val bedPath = tempDirectory.toPath().resolve("large.bed")
-        val entryCount = 100000
+        val entryCount = 10000
         val chromosomeCount = 10
         val maxPosition = 1_000_000_000
         val queries = 100
@@ -131,7 +131,7 @@ internal class BedReaderTest {
         }
         val simpleIndex = SimpleIndex(bedPath)
         val simpleTime = measureTime {
-            repeat(10000) {
+            repeat(queries) {
                 val (chromosome, start, end) = ChromosomeSpan.random(chromosomeCount, maxPosition)
                 simpleIndex.find(chromosome, start, end)
             }
