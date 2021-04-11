@@ -2,10 +2,10 @@ import java.io.RandomAccessFile
 import java.nio.file.Path
 
 /**
- * Index file has the following format.
+ * Integers in the bed files are written as big-endian; strings are written as two bytes representing the string length
+ * followed by the characters of the string. There are no delimiters between values.
  *
- * Integers are written as big-endian; strings are written as two bytes representing the string length followed
- * by the characters of the string. There are no delimiters between values.
+ * Index file has the following format.
  *
  * `chr1` `startPointer1`
  *

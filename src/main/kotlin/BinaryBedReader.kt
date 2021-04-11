@@ -1,6 +1,9 @@
 import java.io.RandomAccessFile
 import java.nio.file.Path
 
+/**
+ * Common superclass for readers which use indexes providing positions in BED file by query.
+ */
 abstract class BinaryBedReader: BedReader {
     override fun findWithIndex(
         index: BedIndex,
