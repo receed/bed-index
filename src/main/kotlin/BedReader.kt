@@ -34,3 +34,5 @@ interface BedReader {
     ): List<BedEntry>
 
 }
+
+fun BedReader(): BedReader = RamBedReader

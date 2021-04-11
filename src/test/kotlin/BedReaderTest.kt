@@ -1,4 +1,3 @@
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -23,7 +22,7 @@ internal class BedReaderTest {
 
     class IndexContext(private val index: BedIndex, private val bedPath: Path) {
         fun findWithIndex(chromosome: String, start: Int, end: Int) =
-            BinaryBedReader.findWithIndex(index, bedPath, chromosome, start, end)
+            BedReader().findWithIndex(index, bedPath, chromosome, start, end)
 
         fun assertFind(chromosome: String, start: Int, end: Int, expected: List<BedEntry>) {
             val actual = findWithIndex(chromosome, start, end)
@@ -36,10 +35,10 @@ internal class BedReaderTest {
 
     private fun withIndex(bedPath: Path, block: IndexContext.() -> Unit) {
         val indexPath = Path.of("index")
-        val indexCreationTime = measureTime { BinaryBedReader.createIndex(bedPath, indexPath) }
+        val indexCreationTime = measureTime { BedReader().createIndex(bedPath, indexPath) }
         println("Index creation took $indexCreationTime")
         val start = System.nanoTime()
-        val index = BinaryBedReader.loadIndex(indexPath)
+        val index = BedReader().loadIndex(indexPath)
         val loadingTime = (System.nanoTime() - start).nanoseconds
         println("Index loading took $loadingTime")
         try {
@@ -119,11 +118,8 @@ internal class BedReaderTest {
         val entryCount = 100000
         val chromosomeCount = 10
         val maxPosition = 1_000_000_000
-        val queries = 1000
-        val generationTime = measureTime {
-            generateBed(bedPath, entryCount, chromosomeCount, maxPosition)
-        }
-        println("Generation of the BED file took $generationTime")
+        val queries = 100
+        generateBed(bedPath, entryCount, chromosomeCount, maxPosition)
         withIndex(bedPath) {
             val time = measureTime {
                 repeat(queries) {
@@ -133,5 +129,13 @@ internal class BedReaderTest {
             }
             println("$queries queries to an index of $entryCount entries took $time, ${time / queries} per query")
         }
+        val simpleIndex = SimpleIndex(bedPath)
+        val simpleTime = measureTime {
+            repeat(10000) {
+                val (chromosome, start, end) = ChromosomeSpan.random(chromosomeCount, maxPosition)
+                simpleIndex.find(chromosome, start, end)
+            }
+        }
+        println("$queries queries to a simple index of $entryCount entries took $simpleTime, ${simpleTime / queries} per query")
     }
 }
