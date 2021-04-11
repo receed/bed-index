@@ -26,12 +26,20 @@ internal class BedReaderTest {
     }
 
     @Test
-    fun readerTest() {
+    fun small() {
         withIndex("test.bed") {
             assertFind("chr3", 1, 100, setOf())
             assertFind("chr1", 2, 9, setOf())
             assertFind("chr2", 10, 30, setOf(BedEntry("chr2 10 30"), BedEntry("chr2 17 29")))
             assertFind("chr1", 18, 52, setOf(BedEntry("chr1 20 40"), BedEntry("chr1 20 25")))
+        }
+    }
+
+    @Test
+    fun additionalData() {
+        withIndex("sample.bed") {
+            assertFind("chr7", 127477031, 127478198, setOf(BedEntry(
+                "chr7", 127477031, 127478198,  listOf("Neg2", "0", "-", "127477031",  "127478198", "0,0,255"))))
         }
     }
 }
