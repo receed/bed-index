@@ -2,6 +2,7 @@ import java.io.RandomAccessFile
 import java.nio.file.Path
 
 data class Position(val start: Int, val end: Int, val filePointer: Long)
+data class FileRange(val start: Long, val end: Long)
 
 object BinaryBedReader : BedReader {
     override fun createIndex(bedPath: Path, indexPath: Path) {
@@ -38,16 +39,16 @@ object BinaryBedReader : BedReader {
 
     override fun loadIndex(indexPath: Path): BedIndex {
         val file = RandomAccessFile(indexPath.toFile(), "r")
-        val chromosomeRanges = mutableMapOf<String, LongRange>()
+        val chromosomeRanges = mutableMapOf<String, FileRange>()
         generateSequence {
             file.readUTF().takeIf { it.isNotEmpty() }?.let {
                 it to file.readLong()
             }
         }.fold(file.filePointer) { entriesBegin, (chromosome, entriesEnd) ->
-            chromosomeRanges[chromosome] = entriesBegin until entriesEnd
+            chromosomeRanges[chromosome] = FileRange(entriesBegin, entriesEnd)
             entriesEnd
         }
-        return BinaryBedIndex(chromosomeRanges, file)
+        return BinaryBedIndex(chromosomeRanges, indexPath)
     }
 
     override fun findWithIndex(
@@ -57,6 +58,14 @@ object BinaryBedReader : BedReader {
         start: Int,
         end: Int
     ): List<BedEntry> {
-        TODO("Not yet implemented")
+        return RandomAccessFile(bedPath.toFile(), "r").use { file ->
+            index.usePositions(chromosome, start, end) { positions ->
+                positions.map { position ->
+                    file.seek(position)
+                    val items = file.readLine().split('\t', ' ')
+                    BedEntry(items[0], items[1].toInt(), items[2].toInt(), items.drop(3))
+                }.toList()
+            }
+        }
     }
 }

@@ -2,7 +2,9 @@ import java.nio.file.Path
 
 data class BedEntry(val chromosome: String, val start: Int, val end: Int, val other: List<Any>)
 
-interface BedIndex
+interface BedIndex {
+    fun <T> usePositions(chromosome: String, start: Int, end: Int, block: (Sequence<Long>) -> T): T
+}
 
 interface BedReader {
 
